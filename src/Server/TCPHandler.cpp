@@ -611,6 +611,7 @@ void TCPHandler::processOrdinaryQuery()
                 /// Some time passed.
                 after_send_progress.restart();
                 sendProgress();
+                sendProfileEvents();
             }
 
             sendLogs();
@@ -638,6 +639,7 @@ void TCPHandler::processOrdinaryQuery()
             sendExtremes(state.io.in->getExtremes());
             sendProfileInfo(state.io.in->getProfileInfo());
             sendProgress();
+            sendProfileEvents();
         }
 
         if (state.is_connection_closed)
@@ -686,6 +688,7 @@ void TCPHandler::processOrdinaryQueryWithProcessors()
                 /// Some time passed and there is a progress.
                 after_send_progress.restart();
                 sendProgress();
+                sendProfileEvents();
             }
 
             sendLogs();
@@ -711,6 +714,7 @@ void TCPHandler::processOrdinaryQueryWithProcessors()
             sendProfileInfo(executor.getProfileInfo());
             sendProgress();
             sendLogs();
+            sendProfileEvents();
         }
 
         if (state.is_connection_closed)
@@ -887,12 +891,12 @@ namespace
         MemoryTracker * memoryTracker,
         MutableColumns & columns,
         String const & host_name,
-        time_t current_time,
         UInt64 thread_id)
     {
         auto metric = memoryTracker->getMetric();
         if (metric == CurrentMetrics::end())
             return;
+        time_t current_time = time(nullptr);
 
         size_t i = 0;
         columns[i++]->insertData(host_name.data(), host_name.size());
@@ -910,13 +914,6 @@ namespace
 
 void TCPHandler::sendProfileEvents()
 {
-    auto thread_group = CurrentThread::getGroup();
-    auto const counters_snapshot = CurrentThread::getProfileEvents().getPartiallyAtomicSnapshot();
-    auto current_time = time(nullptr);
-    auto * memory_tracker = CurrentThread::getMemoryTracker();
-
-    auto const thread_id = CurrentThread::get().thread_id;
-
     auto profile_event_type = std::make_shared<DataTypeEnum8>(
         DataTypeEnum8::Values
         {
@@ -940,9 +937,17 @@ void TCPHandler::sendProfileEvents()
     Block block(std::move(temp_columns));
 
     MutableColumns columns = block.mutateColumns();
-    dumpProfileEvents(counters_snapshot, columns, server_display_name, current_time, thread_id);
-    dumpMemoryTracker(memory_tracker, columns, server_display_name, current_time, thread_id);
+    auto thread_group = CurrentThread::getGroup();
+    for (auto * thread : thread_group->threads)
+    {
+        auto const counters_snapshot = thread->performance_counters.getPartiallyAtomicSnapshot();
+        auto current_time = time(nullptr);
+        auto * memory_tracker = &thread->memory_tracker;
+        auto const thread_id = CurrentThread::get().thread_id;
 
+        dumpProfileEvents(counters_snapshot, columns, server_display_name, current_time, thread_id);
+        dumpMemoryTracker(memory_tracker, columns, server_display_name, thread_id);
+    }
     block.setColumns(std::move(columns));
 
     initProfileEventsBlockOutput(block);
