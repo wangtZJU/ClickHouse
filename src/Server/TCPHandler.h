@@ -46,6 +46,8 @@ struct QueryState
     InternalTextLogsQueuePtr logs_queue;
     BlockOutputStreamPtr logs_block_out;
 
+    BlockOutputStreamPtr profile_events_block_out;
+
     /// From where to read data for INSERT.
     std::shared_ptr<ReadBuffer> maybe_compressed_in;
     BlockInputStreamPtr block_in;
@@ -225,11 +227,13 @@ private:
     void sendProfileInfo(const BlockStreamProfileInfo & info);
     void sendTotals(const Block & totals);
     void sendExtremes(const Block & extremes);
+    void sendProfileEvents();
 
     /// Creates state.block_in/block_out for blocks read/write, depending on whether compression is enabled.
     void initBlockInput();
     void initBlockOutput(const Block & block);
     void initLogsBlockOutput(const Block & block);
+    void initProfileEventsBlockOutput(const Block & block);
 
     bool isQueryCancelled();
 

@@ -268,6 +268,7 @@ private:
     std::shared_ptr<ReadBuffer> maybe_compressed_in;
     BlockInputStreamPtr block_in;
     BlockInputStreamPtr block_logs_in;
+    BlockInputStreamPtr block_profile_events_in;
 
     /// Where to write data for INSERT.
     std::shared_ptr<WriteBuffer> maybe_compressed_out;
@@ -311,6 +312,7 @@ private:
     Block receiveData();
     Block receiveLogData();
     Block receiveDataImpl(BlockInputStreamPtr & stream);
+    Block receiveProfileEvents();
 
     std::vector<String> receiveMultistringMessage(UInt64 msg_type) const;
     std::unique_ptr<Exception> receiveException() const;
@@ -320,6 +322,7 @@ private:
     void initInputBuffers();
     void initBlockInput();
     void initBlockLogsInput();
+    void initBlockProfileEventsInput();
 
     [[noreturn]] void throwUnexpectedPacket(UInt64 packet_type, const char * expected) const;
 };
