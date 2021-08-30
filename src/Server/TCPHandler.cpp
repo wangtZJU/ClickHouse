@@ -901,7 +901,7 @@ namespace
         columns[i++]->insert(ProfileEventTypes::GAUGE);
 
         auto const * metric_name = CurrentMetrics::getName(metric);
-        columns[i++]->insert(metric_name, strlen(metric_name));
+        columns[i++]->insertData(metric_name, strlen(metric_name));
         auto metric_value = CurrentMetrics::get(metric);
         columns[i++]->insert(metric_value);
     }

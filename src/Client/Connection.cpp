@@ -830,7 +830,7 @@ Packet Connection::receivePacket()
                 return res;
 
             case Protocol::Server::ProfileEvents:
-                res.block = receiveProfileEvent();
+                res.block = receiveProfileEvents();
                 return res;
 
             default:
