@@ -2254,6 +2254,10 @@ private:
                     onLogData(packet.block);
                     break;
 
+                case Protocol::Server::ProfileEvents:
+                    onProfileEvent(packet.block);
+                    break;
+
                 default:
                     throw NetException(
                         "Unexpected packet from server (expected Exception, EndOfStream or Log, got "
