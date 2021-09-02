@@ -7,6 +7,7 @@
 #include <Common/OpenTelemetryTraceContext.h>
 #include <Common/ProfileEvents.h>
 #include <common/StringRef.h>
+#include <Common/ConcurrentBoundedQueue.h>
 
 #include <boost/noncopyable.hpp>
 
@@ -42,6 +43,10 @@ struct ViewRuntimeData;
 class QueryViewsLog;
 using InternalTextLogsQueuePtr = std::shared_ptr<InternalTextLogsQueue>;
 using InternalTextLogsQueueWeakPtr = std::weak_ptr<InternalTextLogsQueue>;
+
+using InternalProfileEventsQueue = ConcurrentBoundedQueue<Block>;
+using InternalProfileEventsQueuePtr = std::shared_ptr<InternalProfileEventsQueue>;
+using InternalProfileEventsQueueWeakPtr = std::weak_ptr<InternalProfileEventsQueue>;
 using ThreadStatusPtr = ThreadStatus *;
 
 /** Thread group is a collection of threads dedicated to single task
@@ -64,6 +69,7 @@ public:
     ContextWeakPtr global_context;
 
     InternalTextLogsQueueWeakPtr logs_queue_ptr;
+    InternalProfileEventsQueueWeakPtr profile_queue_ptr;
     std::function<void()> fatal_error_callback;
 
     std::vector<UInt64> thread_ids;
@@ -134,6 +140,8 @@ protected:
     /// A logs queue used by TCPHandler to pass logs to a client
     InternalTextLogsQueueWeakPtr logs_queue_ptr;
 
+    InternalProfileEventsQueueWeakPtr profile_queue_ptr;
+
     bool performance_counters_finalized = false;
     UInt64 query_start_time_nanoseconds = 0;
     UInt64 query_start_time_microseconds = 0;
@@ -203,6 +211,13 @@ public:
 
     void attachInternalTextLogsQueue(const InternalTextLogsQueuePtr & logs_queue,
                                      LogsLevel client_logs_level);
+
+    InternalProfileEventsQueuePtr getInternalProfileEventsQueue() const
+    {
+        return thread_state == Died ? nullptr : profile_queue_ptr.lock();
+    }
+
+    void attachInternalProfileEventsQueue(const InternalProfileEventsQueuePtr & profile_queue);
 
     /// Callback that is used to trigger sending fatal error messages to client.
     void setFatalErrorCallback(std::function<void()> callback);

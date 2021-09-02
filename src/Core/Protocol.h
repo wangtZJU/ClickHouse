@@ -103,7 +103,8 @@ namespace Protocol
                 "Log",
                 "TableColumns",
                 "PartUUIDs",
-                "ReadTaskRequest"
+                "ReadTaskRequest",
+                "ProfileEvents",
             };
             return packet <= MAX
                 ? data[packet]

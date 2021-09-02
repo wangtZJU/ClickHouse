@@ -20,6 +20,7 @@
 #include <Common/StringUtils/StringUtils.h>
 #include <Common/OpenSSLHelpers.h>
 #include <Common/randomSeed.h>
+#include "Core/Block.h"
 #include <Interpreters/ClientInfo.h>
 #include <Compression/CompressionFactory.h>
 #include <Processors/Pipe.h>
@@ -830,6 +831,7 @@ Packet Connection::receivePacket()
                 return res;
 
             case Protocol::Server::ProfileEvents:
+                LOG_DEBUG(log_wrapper.get(), "Connection received ProfileEvents");
                 res.block = receiveProfileEvents();
                 return res;
 

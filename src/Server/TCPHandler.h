@@ -46,6 +46,7 @@ struct QueryState
     InternalTextLogsQueuePtr logs_queue;
     BlockOutputStreamPtr logs_block_out;
 
+    InternalProfileEventsQueuePtr profile_queue;
     BlockOutputStreamPtr profile_events_block_out;
 
     /// From where to read data for INSERT.
