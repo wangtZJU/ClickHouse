@@ -160,6 +160,8 @@ void Suggest::fetch(Connection & connection, const ConnectionTimeouts & timeouts
                 continue;
             case Protocol::Server::Log:
                 continue;
+            case Protocol::Server::ProfileEvents:
+                continue;
 
             case Protocol::Server::Exception:
                 packet.exception->rethrow();
